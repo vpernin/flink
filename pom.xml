@@ -647,6 +647,8 @@ under the License.
 			</modules>
 			<dependencyManagement>
 				<dependencies>
+
+					<!-- Older version 4.1.2 comes with jets3t, 4.4.4 comes with Calcite Avatica, 4.2.5 are the official hadoop-common -->
 					<dependency>
 						<groupId>org.apache.httpcomponents</groupId>
 						<artifactId>httpcore</artifactId>

@@ -99,10 +99,10 @@ under the License.
 			<artifactId>zkclient</artifactId>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.apache.curator</groupId>
 			<artifactId>curator-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -139,9 +139,6 @@ under the License.
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
-
-	
 
 	<build>
 		<plugins>
