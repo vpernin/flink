@@ -93,7 +93,7 @@ under the License.
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- Not an easy choice, Netty is used by the elasticsearch java client to coomunicate with the servers -->
+			<!-- Not an easy choice, Netty is used by the elasticsearch java client to communicate with the servers -->
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty</artifactId>
