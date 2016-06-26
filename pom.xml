@@ -1495,14 +1495,6 @@ under the License.
 						<outputFile>DT.log</outputFile>
 					</configuration>
 				</plugin>
-
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-dependency-plugin</artifactId>
-					<configuration>
-						<outputFile>DT.log</outputFile>
-					</configuration>
-				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
