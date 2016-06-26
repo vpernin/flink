@@ -104,13 +104,22 @@ under the License.
 					<groupId>org.xerial.snappy</groupId>
 					<artifactId>snappy-java</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.101tec</groupId>
+					<artifactId>zkclient</artifactId>
+				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.curator</groupId>
 			<artifactId>curator-test</artifactId>
-			<version>${curator.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -138,6 +147,16 @@ under the License.
 		</dependency>
 
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty</artifactId>
+				<version>3.7.0.Final</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 
 	<build>
