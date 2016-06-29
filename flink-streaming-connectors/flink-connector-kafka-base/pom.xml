@@ -57,6 +57,16 @@ under the License.
 			<!-- Projects depending on this project,
 			won't depend on flink-table. -->
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.protobuf</groupId>
+					<artifactId>protobuf-java</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-lang</groupId>
+					<artifactId>commons-lang</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
