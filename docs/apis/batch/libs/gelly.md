@@ -346,13 +346,13 @@ DataSet<K> getVertexIds()
 DataSet<Tuple2<K, K>> getEdgeIds()
 
 // get a DataSet of <vertex ID, in-degree> pairs for all vertices
-DataSet<Tuple2<K, Long>> inDegrees()
+DataSet<Tuple2<K, LongValue>> inDegrees()
 
 // get a DataSet of <vertex ID, out-degree> pairs for all vertices
-DataSet<Tuple2<K, Long>> outDegrees()
+DataSet<Tuple2<K, LongValue>> outDegrees()
 
 // get a DataSet of <vertex ID, degree> pairs for all vertices, where degree is the sum of in- and out- degrees
-DataSet<Tuple2<K, Long>> getDegrees()
+DataSet<Tuple2<K, LongValue>> getDegrees()
 
 // get the number of vertices
 long numberOfVertices()
@@ -381,13 +381,13 @@ getVertexIds: DataSet[K]
 getEdgeIds: DataSet[(K, K)]
 
 // get a DataSet of <vertex ID, in-degree> pairs for all vertices
-inDegrees: DataSet[(K, Long)]
+inDegrees: DataSet[(K, LongValue)]
 
 // get a DataSet of <vertex ID, out-degree> pairs for all vertices
-outDegrees: DataSet[(K, Long)]
+outDegrees: DataSet[(K, LongValue)]
 
 // get a DataSet of <vertex ID, degree> pairs for all vertices, where degree is the sum of in- and out- degrees
-getDegrees: DataSet[(K, Long)]
+getDegrees: DataSet[(K, LongValue)]
 
 // get the number of vertices
 numberOfVertices: Long
@@ -519,13 +519,13 @@ Note that if the input dataset contains a key multiple times, all Gelly join met
 {% highlight java %}
 Graph<Long, Double, Double> network = ...
 
-DataSet<Tuple2<Long, Long>> vertexOutDegrees = network.outDegrees();
+DataSet<Tuple2<Long, LongValue>> vertexOutDegrees = network.outDegrees();
 
 // assign the transition probabilities as the edge weights
 Graph<Long, Double, Double> networkWithWeights = network.joinWithEdgesOnSource(vertexOutDegrees,
-				new VertexJoinFunction<Double, Long>() {
-					public Double vertexJoin(Double vertexValue, Long inputValue) {
-						return vertexValue / inputValue;
+				new VertexJoinFunction<Double, LongValue>() {
+					public Double vertexJoin(Double vertexValue, LongValue inputValue) {
+						return vertexValue / inputValue.getValue();
 					}
 				});
 {% endhighlight %}
@@ -535,10 +535,10 @@ Graph<Long, Double, Double> networkWithWeights = network.joinWithEdgesOnSource(v
 {% highlight scala %}
 val network: Graph[Long, Double, Double] = ...
 
-val vertexOutDegrees: DataSet[(Long, Long)] = network.outDegrees
+val vertexOutDegrees: DataSet[(Long, LongValue)] = network.outDegrees
 
 // assign the transition probabilities as the edge weights
-val networkWithWeights = network.joinWithEdgesOnSource(vertexOutDegrees, (v1: Double, v2: Long) => v1 / v2)
+val networkWithWeights = network.joinWithEdgesOnSource(vertexOutDegrees, (v1: Double, v2: LongValue) => v1 / v2.getValue)
 {% endhighlight %}
 </div>
 </div>
@@ -1832,6 +1832,7 @@ Gelly has a growing collection of graph algorithms for easily analyzing large-sc
 * [Triangle Enumerator](#triangle-enumerator)
 * [Hyperlink-Induced Topic Search](#hyperlink-induced-topic-search)
 * [Summarization](#summarization)
+* [Adamic-Adar](#adamic-adar)
 * [Jaccard Index](#jaccard-index)
 * [Local Clustering Coefficient](#local-clustering-coefficient)
 * [Global Clustering Coefficient](#global-clustering-coefficient)
@@ -1858,10 +1859,10 @@ verticesWithCommunity.print();
 {% highlight scala %}
 val env = ExecutionEnvironment.getExecutionEnvironment
 
-val graph: Graph[Long, Long, NullValue] = ...
+val graph: Graph[java.lang.Long, java.lang.Long, NullValue] = ...
 
 // run Label Propagation for 30 iterations to detect communities on the input graph
-val verticesWithCommunity = graph.run(new LabelPropagation[Long](30))
+val verticesWithCommunity = graph.run(new LabelPropagation[java.lang.Long, java.lang.Long, NullValue](30))
 
 // print the result
 verticesWithCommunity.print
@@ -2037,19 +2038,18 @@ Each `Tuple3` corresponds to a triangle, with the fields containing the IDs of t
 
 #### Overview
 [Hyperlink-Induced Topic Search](http://www.cs.cornell.edu/home/kleinber/auth.pdf) (HITS, or "Hubs and Authorities")
-computes two interdependent scores for every vertex in a directed graph. Good hubs are those which point to many 
+computes two interdependent scores for every vertex in a directed graph. Good hubs are those which point to many
 good authorities and good authorities are those pointed to by many good hubs.
  
 #### Details
-HITS ranking relies on an iterative method converging to a stationary solution. Each vertex in the directed graph is assigned same non-negative
-hub and authority scores. Then the algorithm iteratively updates the scores until termination. Current implementation divides the iteration
-into two phases, authority scores can be computed until hub scores updating and normalising finished, hub scores can be computed until
-authority scores updating and normalising finished.
+Every vertex is assigned the same initial hub and authority scores. The algorithm then iteratively updates the scores
+until termination. During each iteration new hub scores are computed from the authority scores, then new authority
+scores are computed from the new hub scores. The scores are then normalized and optionally tested for convergence.
 
 #### Usage
-The algorithm takes a directed graph as input and outputs a `DataSet` of vertices, where the vertex value is a `Tuple2` 
-containing the hub and authority score after maximum iterations.
- 
+The algorithm takes a directed graph as input and outputs a `DataSet` of `Tuple3` containing the vertex ID, hub score,
+and authority score.
+
 ### Summarization
 
 #### Overview
@@ -2073,6 +2073,28 @@ corresponding groupings.
 The algorithm takes a directed, vertex (and possibly edge) attributed graph as input and outputs a new graph where each
 vertex represents a group of vertices and each edge represents a group of edges from the input graph. Furthermore, each
 vertex and edge in the output graph stores the common group value and the number of represented elements.
+
+### Adamic-Adar
+
+#### Overview
+Adamic-Adar measures the similarity between pairs of vertices as the sum of the inverse logarithm of degree over shared
+neighbors. Scores are non-negative and unbounded. A vertex with higher degree has greater overall influence but is less
+influential to each pair of neighbors.
+
+#### Details
+The algorithm first annotates each vertex with the inverse of the logarithm of the vertex degree then joins this score
+onto edges by source vertex. Grouping on the source vertex, each pair of neighbors is emitted with the vertex score.
+Grouping on two-paths, the Adamic-Adar score is summed.
+
+See the [Jaccard Index](#jaccard-index) library method for a similar algorithm.
+
+#### Usage
+The algorithm takes a simple, undirected graph as input and outputs a `DataSet` of tuples containing two vertex IDs and
+the Adamic-Adair similarity score. The graph ID type must be `Comparable` and `Copyable`.
+
+* `setLittleParallelism`: override the parallelism of operators processing small amounts of data
+* `setMinimumRatio`: filter out Adamic-Adar scores less than the given ratio times the average score
+* `setMinimumScore`: filter out Adamic-Adar scores less than the given minimum
 
 ### Jaccard Index
 
@@ -2112,8 +2134,9 @@ divided by the number of potential edges between neighbors.
 See the [Triangle Enumeration](#triangle-enumeration) library method for a detailed explanation of triangle enumeration.
 
 #### Usage
-The algorithm takes a simple, undirected graph as input and outputs a `DataSet` of tuples containing the vertex ID,
-vertex degree, and number of triangles containing the vertex. The graph ID type must be `Comparable` and `Copyable`.
+Directed and undirected variants are provided. The algorithms take a simple graph as input and output a `DataSet` of
+tuples containing the vertex ID, vertex degree, and number of triangles containing the vertex. The graph ID type must be
+`Comparable` and `Copyable`.
 
 ### Global Clustering Coefficient
 
@@ -2126,8 +2149,9 @@ See the [Local Clustering Coefficient](#local-clustering-coefficient) library me
 clustering coefficient.
 
 #### Usage
-The algorithm takes a simple, undirected graph as input and outputs a result containing the total number of triplets and
-triangles in the graph. The graph ID type must be `Comparable` and `Copyable`.
+Directed and undirected variants are provided. The algorithm takes a simple graph as input and outputs a result
+containing the total number of triplets and triangles in the graph. The graph ID type must be `Comparable` and
+`Copyable`.
 
 
 {% top %}

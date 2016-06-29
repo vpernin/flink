@@ -113,7 +113,7 @@ public class CliFrontend {
 	private static final String ACTION_SAVEPOINT = "savepoint";
 
 	// config dir parameters
-	private static final String ENV_CONFIG_DIRECTORY = "FLINK_CONF_DIR";
+	public static final String ENV_CONFIG_DIRECTORY = "FLINK_CONF_DIR";
 	private static final String CONFIG_DIRECTORY_FALLBACK_1 = "../conf";
 	private static final String CONFIG_DIRECTORY_FALLBACK_2 = "conf";
 
@@ -153,7 +153,7 @@ public class CliFrontend {
 		// load the configuration
 		LOG.info("Trying to load configuration file");
 		GlobalConfiguration.loadConfiguration(configDirectory.getAbsolutePath());
-		System.setProperty("FLINK_CONF_DIR", configDirectory.getAbsolutePath());
+		System.setProperty(ENV_CONFIG_DIRECTORY, configDirectory.getAbsolutePath());
 
 		this.config = GlobalConfiguration.getConfiguration();
 
@@ -616,7 +616,7 @@ public class CliFrontend {
 
 		// evaluate help flag
 		if (options.isPrintHelp()) {
-			CliFrontendParser.printHelpForCancel();
+			CliFrontendParser.printHelpForSavepoint();
 			return 0;
 		}
 
