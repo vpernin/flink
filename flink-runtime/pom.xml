@@ -332,7 +332,7 @@ under the License.
 					</execution>
 				</executions>
 				<configuration>
-					<dotGitDirectory>${project.basedir}/../../.git</dotGitDirectory>
+					<dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
 					<generateGitPropertiesFile>true</generateGitPropertiesFile>
 					<skipPoms>false</skipPoms>
 					<failOnNoGitDirectory>false</failOnNoGitDirectory>
